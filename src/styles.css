@@ -1,0 +1,254 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #101820;
+  color: white;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 18px;
+  background: #f6b73c;
+  color: #1b1b1b;
+  font-weight: bold;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.screen {
+  min-height: 100vh;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+}
+
+.panel {
+  width: min(900px, 100%);
+  background: #1f2f3d;
+  border: 3px solid #39566d;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.hero-panel {
+  text-align: center;
+}
+
+.hero-panel h1,
+.panel h1,
+.island h1 {
+  margin-top: 0;
+  font-size: 42px;
+}
+
+.menu {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.creator-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: center;
+}
+
+.character-preview {
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  background: #172631;
+  border-radius: 18px;
+}
+
+.creator-controls {
+  display: grid;
+  gap: 16px;
+}
+
+.creator-controls label {
+  display: grid;
+  gap: 8px;
+}
+
+.creator-controls input,
+.creator-controls select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 0;
+}
+
+.sprite {
+  position: relative;
+  width: 90px;
+  height: 220px;
+}
+
+.sprite .head {
+  position: absolute;
+  top: 26px;
+  left: 25px;
+  width: 42px;
+  height: 46px;
+  background: #d69b72;
+  border-radius: 45%;
+  z-index: 3;
+}
+
+.sprite .hair {
+  position: absolute;
+  top: 14px;
+  left: 22px;
+  width: 48px;
+  height: 28px;
+  background: #2b1b12;
+  border-radius: 60% 60% 30% 30%;
+  z-index: 4;
+}
+
+.sprite.curly .hair {
+  height: 34px;
+  border-radius: 50%;
+}
+
+.sprite.long .hair {
+  height: 70px;
+  border-radius: 45% 45% 25% 25%;
+}
+
+.sprite .body {
+  position: absolute;
+  top: 78px;
+  left: 18px;
+  width: 56px;
+  height: 82px;
+  background: #eeeeee;
+  border-radius: 14px;
+  z-index: 2;
+}
+
+.sprite .belt {
+  position: absolute;
+  top: 125px;
+  left: 14px;
+  width: 64px;
+  height: 10px;
+  background: white;
+  border: 2px solid #111;
+  z-index: 5;
+}
+
+.sprite .legs {
+  position: absolute;
+  top: 155px;
+  left: 20px;
+  width: 52px;
+  height: 54px;
+  background: #eeeeee;
+  border-radius: 0 0 12px 12px;
+}
+
+.sprite.slim .body {
+  width: 46px;
+  left: 23px;
+}
+
+.sprite.strong .body {
+  width: 70px;
+  left: 10px;
+}
+
+.sprite.rashguard .body,
+.sprite.rashguard .legs {
+  background: #246bfe;
+}
+
+.sprite.casual .body {
+  background: #37a169;
+}
+
+.sprite.casual .legs {
+  background: #2d3748;
+}
+
+.dialogue-box {
+  background: #172631;
+  border-radius: 16px;
+  padding: 24px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.map-screen {
+  display: block;
+}
+
+.hud {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  background: #1f2f3d;
+  border-bottom: 3px solid #39566d;
+  padding: 16px 24px;
+  margin: -24px -24px 24px;
+}
+
+.island {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+}
+
+.locations {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.location-card {
+  text-align: left;
+  background: #24394a;
+  color: white;
+  border: 2px solid #39566d;
+}
+
+.location-card h2 {
+  margin-top: 0;
+}
+
+.location-info {
+  margin-top: 24px;
+  padding: 18px;
+  background: #1f2f3d;
+  border-radius: 14px;
+}
+
+@media (max-width: 700px) {
+  .creator-layout,
+  .locations {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-panel h1,
+  .panel h1,
+  .island h1 {
+    font-size: 32px;
+  }
+}
