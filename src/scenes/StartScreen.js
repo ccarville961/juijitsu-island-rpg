@@ -5,6 +5,7 @@ export class StartScreen {
   }
 
   render() {
+    this.game.audio?.playMusic("chill");
     this.game.root.innerHTML = `
       <main class="screen start-screen">
         <section class="title-card">

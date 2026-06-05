@@ -3,11 +3,12 @@ import { StartScreen } from "./scenes/StartScreen.js";
 import { CharacterCreator } from "./scenes/CharacterCreator.js";
 import { Prologue } from "./scenes/Prologue.js";
 import { IslandMap } from "./scenes/IslandMap.js";
+import { AudioManager } from "./audio/AudioManager.js";
 
 export class Game {
   constructor(rootElement) {
     this.root = rootElement;
-
+    this.audio = new AudioManager();
     this.state = {
       player: {
         name: "Rookie",
