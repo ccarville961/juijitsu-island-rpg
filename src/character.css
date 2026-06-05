@@ -1,0 +1,251 @@
+/* CHARACTER CUSTOMISATION */
+
+.creator-screen {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 47, 163, 0.28), transparent 18%),
+    radial-gradient(circle at 50% 48%, rgba(53, 232, 255, 0.18), transparent 30%),
+    linear-gradient(180deg, #100735, #02020f);
+  color: white;
+  font-family: "Courier New", monospace;
+}
+
+.game-hud {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 3px solid #111827;
+  background: #050510;
+  color: #cfcfcf;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.game-hud strong {
+  color: #ffd166;
+}
+
+.creator-shell {
+  width: min(900px, 94vw);
+  margin: 0 auto;
+  padding: 22px 0 34px;
+}
+
+.creator-shell h1 {
+  text-align: center;
+  margin: 0 0 12px;
+  color: #ffd166;
+  font-size: 34px;
+  letter-spacing: 2px;
+}
+
+.creator-help {
+  text-align: center;
+  color: #cfcfcf;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.preview-box,
+.option-box {
+  border: 4px solid #fffbe0;
+  background: #050510;
+  padding: 18px;
+  margin-bottom: 24px;
+  box-shadow: 0 0 20px rgba(53, 232, 255, 0.25);
+}
+
+.preview-box h2 {
+  margin: 0 0 14px;
+  text-align: center;
+  color: #ffd166;
+}
+
+.preview-stage {
+  height: 300px;
+  display: grid;
+  place-items: center;
+  background: #101827;
+  overflow: hidden;
+}
+
+#spriteCanvas {
+  width: 192px;
+  height: 288px;
+  image-rendering: pixelated;
+}
+
+.custom-row {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  align-items: center;
+  padding: 10px 22px;
+  font-size: 19px;
+  color: #e8e8e8;
+}
+
+.custom-row strong {
+  color: #35e8ff;
+}
+
+.custom-row.selected {
+  background: #ffd166;
+  color: #050510;
+}
+
+.custom-row.selected strong {
+  color: #050510;
+}
+
+.name-input {
+  width: 100%;
+  max-width: 260px;
+  padding: 8px 10px;
+  background: #101827;
+  color: #35e8ff;
+  border: 2px solid #35e8ff;
+  border-radius: 6px;
+  font-family: "Courier New", monospace;
+  font-size: 18px;
+  font-weight: bold;
+  outline: none;
+}
+
+.custom-row.selected .name-input {
+  background: #fffbe0;
+  color: #050510;
+  border-color: #050510;
+}
+
+.option-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 320px;
+  max-width: 320px;
+  gap: 12px;
+}
+
+.option-picker strong {
+  flex: 1;
+  text-align: center;
+}
+
+.option-box .custom-row:last-child strong {
+  display: block;
+  width: 320px;
+  max-width: 320px;
+  text-align: center;
+}
+
+.mini-arrow {
+  width: 38px;
+  min-width: 38px;
+  height: 34px;
+  padding: 0;
+  background: #050510;
+  color: #35e8ff;
+  border: 2px solid #35e8ff;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(53, 232, 255, 0.55);
+  font-size: 14px;
+}
+
+.custom-row.selected .mini-arrow {
+  background: #050510;
+  color: #fffbe0;
+  border-color: #050510;
+}
+
+/* CONTROLS */
+
+.mobile-controls {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 28px;
+  align-items: center;
+  margin-top: 24px;
+}
+
+.dpad {
+  width: 220px;
+  display: grid;
+  grid-template-columns: 64px 64px 64px;
+  grid-template-rows: 64px 64px 64px;
+  gap: 10px;
+  justify-content: center;
+}
+
+.dpad button {
+  width: 64px;
+  min-width: 64px;
+  height: 64px;
+  padding: 0;
+}
+
+.dpad-up { grid-column: 2; grid-row: 1; }
+.dpad-left { grid-column: 1; grid-row: 2; }
+.dpad-right { grid-column: 3; grid-row: 2; }
+.dpad-down { grid-column: 2; grid-row: 3; }
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.action-grid button {
+  width: 100%;
+  min-width: 0;
+  height: 72px;
+}
+
+.mobile-controls button {
+  background: #fffbe0;
+  color: #050510;
+  border: 4px solid #050510;
+  border-radius: 12px;
+  box-shadow: 0 6px 0 #000;
+  font-weight: 900;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 700px) {
+  .game-hud {
+    font-size: 12px;
+    gap: 8px;
+    overflow-x: auto;
+  }
+
+  .creator-shell {
+    width: 94vw;
+  }
+
+  .creator-shell h1 {
+    font-size: 25px;
+  }
+
+  .custom-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    font-size: 17px;
+  }
+
+  .option-picker {
+    max-width: none;
+  }
+
+  .mobile-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .dpad {
+    margin: 0 auto;
+  }
+
+  .action-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
