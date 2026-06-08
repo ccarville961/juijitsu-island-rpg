@@ -1,0 +1,23 @@
+{
+  "name": "juijitsu-island-rpg-main",
+  "version": "1.0.0",
+  "description": "A browser-based 2D Jiu-Jitsu RPG featuring character progression, island exploration, training systems, tournaments, NPC relationships, and a story-driven martial arts journey.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ccarville961/juijitsu-island-rpg.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ccarville961/juijitsu-island-rpg/issues"
+  },
+  "homepage": "https://github.com/ccarville961/juijitsu-island-rpg#readme",
+  "devDependencies": {
+    "vite": "^8.0.16"
+  }
+}

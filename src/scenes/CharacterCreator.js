@@ -1,4 +1,5 @@
 import { SpriteRenderer } from "../sprites/SpriteRenderer.js";
+import { renderGameControls } from "../ui/GameControls.js";
 
 export class CharacterCreator {
   constructor(game) {
@@ -15,12 +16,14 @@ export class CharacterCreator {
       { key: "glasses", label: "Glasses", values: ["none", "round", "square", "shades"] },
       { key: "skin", label: "Skin Colour", values: ["pale", "fair", "tan", "brown", "dark"] },
       { key: "beard", label: "Beard", values: ["none", "stubble", "goatee", "full"] },
-      { key: "outfit", label: "Clothing", values: ["naked", "white-gi", "blue-gi", "black-gi", "rashguard", "gym-vest", "gym-tee", "hoodie", "suit", "doctor", "striped", "casual"] },      { key: "confirm", label: "Confirm Design", values: ["START GAME"] }
+      { key: "outfit", label: "Clothing", values: ["naked", "white-gi", "blue-gi", "black-gi", "rashguard", "gym-vest", "gym-tee", "hoodie", "suit", "doctor", "striped", "casual"] },
+      { key: "confirm", label: "Confirm Design", values: ["START GAME"] }
     ];
   }
 
   render() {
     this.game.audio?.playMusic("chill");
+
     const player = this.game.state.player;
 
     player.name ??= "Rookie";
@@ -35,44 +38,21 @@ export class CharacterCreator {
     player.outfit ??= "white-gi";
 
     this.game.root.innerHTML = `
-      <main class="creator-screen">
-        <header class="game-hud">
-          <strong>JIU JITSU ISLAND</strong>
-          <span>WHITE</span>
-          <span>Lv1</span>
-          <span>HP 60/60</span>
-          <span>ST 50/50</span>
-        </header>
+      <main class="game-screen creator-screen">
+        <section class="creator-frame">
+          <section class="creator-shell">
+            <section class="preview-box compact-preview">
+              <h2>CHARACTER</h2>
+              <div class="preview-stage">
+                <canvas id="spriteCanvas" width="128" height="192"></canvas>
+              </div>
+            </section>
 
-        <section class="creator-shell">
-          <h1>CREATE YOUR WHITE BELT</h1>
-          <p class="creator-help">↑/↓ row · ←/→ edit · click arrows · type name · touch supported</p>
+            <section class="option-box">
+              ${this.options.map((option, index) => this.renderOption(option, index)).join("")}
+            </section>
 
-          <section class="preview-box">
-            <h2>PREVIEW</h2>
-            <div class="preview-stage">
-              <canvas id="spriteCanvas" width="128" height="192"></canvas>
-            </div>
-          </section>
-
-          <section class="option-box">
-            ${this.options.map((option, index) => this.renderOption(option, index)).join("")}
-          </section>
-
-          <section class="mobile-controls">
-            <div class="dpad">
-              <button id="upBtn" class="dpad-up">▲</button>
-              <button id="leftBtn" class="dpad-left">◀</button>
-              <button id="rightBtn" class="dpad-right">▶</button>
-              <button id="downBtn" class="dpad-down">▼</button>
-            </div>
-
-            <div class="action-grid">
-              <button id="actionBtn">ACTION</button>
-              <button id="confirmBtn">CONFIRM</button>
-              <button id="saveBtn">SAVE</button>
-              <button id="exitBtn">EXIT</button>
-            </div>
+            ${renderGameControls()}
           </section>
         </section>
       </main>
@@ -83,11 +63,11 @@ export class CharacterCreator {
   }
 
   drawSprite() {
-  const canvas = document.getElementById("spriteCanvas");
-  if (!canvas) return;
+    const canvas = document.getElementById("spriteCanvas");
+    if (!canvas) return;
 
-  SpriteRenderer.draw(canvas, this.game.state.player);
-}
+    SpriteRenderer.draw(canvas, this.game.state.player);
+  }
 
   renderOption(option, index) {
     const selected = index === this.selectedIndex ? "selected" : "";
@@ -127,6 +107,7 @@ export class CharacterCreator {
       row.onclick = event => {
         if (event.target.classList.contains("mini-arrow")) return;
         if (event.target.id === "nameInput") return;
+
         this.selectedIndex = Number(row.dataset.index);
 
         if (this.options[this.selectedIndex].key === "confirm") {
@@ -148,10 +129,12 @@ export class CharacterCreator {
     });
 
     const nameInput = document.getElementById("nameInput");
+
     if (nameInput) {
       nameInput.oninput = event => {
         this.game.state.player.name = event.target.value || "Rookie";
       };
+
       nameInput.onfocus = () => {
         this.selectedIndex = 0;
       };
@@ -168,23 +151,50 @@ export class CharacterCreator {
 
     window.onkeydown = event => {
       const typingName = document.activeElement?.id === "nameInput";
+
       if (typingName) {
         if (event.key === "Enter") document.activeElement.blur();
         return;
       }
 
-      if (event.key === "ArrowUp") { event.preventDefault(); this.move(-1); }
-      if (event.key === "ArrowDown") { event.preventDefault(); this.move(1); }
-      if (event.key === "ArrowLeft") { event.preventDefault(); this.change(-1); }
-      if (event.key === "ArrowRight") { event.preventDefault(); this.change(1); }
-      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); this.action(); }
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        this.move(-1);
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        this.move(1);
+      }
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        this.change(-1);
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        this.change(1);
+      }
+
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        this.action();
+      }
     };
   }
 
   move(direction) {
     this.selectedIndex += direction;
-    if (this.selectedIndex < 0) this.selectedIndex = this.options.length - 1;
-    if (this.selectedIndex >= this.options.length) this.selectedIndex = 0;
+
+    if (this.selectedIndex < 0) {
+      this.selectedIndex = this.options.length - 1;
+    }
+
+    if (this.selectedIndex >= this.options.length) {
+      this.selectedIndex = 0;
+    }
+
     this.feedback();
     this.render();
   }
@@ -204,11 +214,20 @@ export class CharacterCreator {
 
     const currentValue = this.game.state.player[option.key];
     let currentIndex = option.values.indexOf(currentValue);
-    if (currentIndex === -1) currentIndex = 0;
+
+    if (currentIndex === -1) {
+      currentIndex = 0;
+    }
 
     let nextIndex = currentIndex + direction;
-    if (nextIndex < 0) nextIndex = option.values.length - 1;
-    if (nextIndex >= option.values.length) nextIndex = 0;
+
+    if (nextIndex < 0) {
+      nextIndex = option.values.length - 1;
+    }
+
+    if (nextIndex >= option.values.length) {
+      nextIndex = 0;
+    }
 
     this.game.state.player[option.key] = option.values[nextIndex];
 
@@ -218,26 +237,38 @@ export class CharacterCreator {
 
   action() {
     const option = this.options[this.selectedIndex];
-    if (option.type === "input") return document.getElementById("nameInput")?.focus();
-    if (option.key === "confirm") return this.confirm();
+
+    if (option.type === "input") {
+      return document.getElementById("nameInput")?.focus();
+    }
+
+    if (option.key === "confirm") {
+      return this.confirm();
+    }
+
     this.change(1);
   }
 
   confirm() {
     this.save(false);
     this.feedback();
-      const canvas = document.getElementById("spriteCanvas");
-  if (canvas) {
-    this.game.state.player.spriteDataUrl = canvas.toDataURL("image/png");
-  }
 
-  this.game.scenes.goTo("prologue");
+    const canvas = document.getElementById("spriteCanvas");
+
+    if (canvas) {
+      this.game.state.player.spriteDataUrl = canvas.toDataURL("image/png");
+    }
+
+    this.game.scenes.goTo("prologue");
   }
 
   save(showMessage = true) {
     this.feedback();
     localStorage.setItem("jiuJitsuIslandSave", JSON.stringify(this.game.state));
-    if (showMessage) alert("Character saved.");
+
+    if (showMessage) {
+      alert("Character saved.");
+    }
   }
 
   exit() {
@@ -246,7 +277,8 @@ export class CharacterCreator {
   }
 
   feedback() {
-    if (navigator.vibrate) navigator.vibrate(30);
+    if (navigator.vibrate) {
+      navigator.vibrate(30);
+    }
   }
-
 }

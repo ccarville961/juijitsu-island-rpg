@@ -1,5 +1,6 @@
 import { SpriteRenderer } from "../sprites/SpriteRenderer.js";
 import { NPCS } from "../data/npcs.js";
+import { renderGameControls } from "../ui/GameControls.js";
 
 export class Prologue {
   constructor(game) {
@@ -30,68 +31,72 @@ export class Prologue {
     this.game.audio?.playMusic?.("battle");
 
     this.game.root.innerHTML = `
-      <main class="battle-screen">
-        <section id="battleStage" class="battle-stage">
-          <div class="dojo-bg">
-            <div class="dojo-wall">
-              <div class="medal-wall left-wall">
-                <span>🥇</span><span>🥈</span><span>🥇</span><span>🏆</span><span>🥇</span><span>🥉</span><span>🥇</span>
-                <span>🥈</span><span>🏆</span><span>🥇</span><span>🥇</span><span>🥉</span><span>🏆</span><span>🥇</span>
-                <span>🥇</span><span>🥇</span><span>🥈</span><span>🏆</span><span>🥇</span><span>🥉</span><span>🥇</span>
+      <main class="game-screen battle-screen">
+        <section class="battle-frame">
+          <section id="battleStage" class="battle-stage">
+            <div class="dojo-bg">
+              <div class="dojo-wall">
+                <div class="medal-wall left-wall">
+                  <span>🥇</span><span>🥈</span><span>🥇</span><span>🏆</span><span>🥇</span><span>🥉</span><span>🥇</span>
+                  <span>🥈</span><span>🏆</span><span>🥇</span><span>🥇</span><span>🥉</span><span>🏆</span><span>🥇</span>
+                  <span>🥇</span><span>🥇</span><span>🥈</span><span>🏆</span><span>🥇</span><span>🥉</span><span>🥇</span>
+                </div>
+
+                <div class="medal-wall right-wall">
+                  <span>🏆</span><span>🥇</span><span>🥈</span><span>🥇</span><span>🏆</span><span>🥇</span><span>🥉</span>
+                  <span>🥇</span><span>🥇</span><span>🏆</span><span>🥈</span><span>🥇</span><span>🥇</span><span>🏆</span>
+                  <span>🥉</span><span>🥇</span><span>🏆</span><span>🥇</span><span>🥈</span><span>🥇</span><span>🥇</span>
+                </div>
+
+                <div class="dojo-sign">ATLAS GYM</div>
+                <div class="dojo-banner">NO EASY ROUNDS</div>
               </div>
 
-              <div class="medal-wall right-wall">
-                <span>🏆</span><span>🥇</span><span>🥈</span><span>🥇</span><span>🏆</span><span>🥇</span><span>🥉</span>
-                <span>🥇</span><span>🥇</span><span>🏆</span><span>🥈</span><span>🥇</span><span>🥇</span><span>🏆</span>
-                <span>🥉</span><span>🥇</span><span>🏆</span><span>🥇</span><span>🥈</span><span>🥇</span><span>🥇</span>
+              <div class="mat-floor"></div>
+            </div>
+
+            <div class="enemy-panel">
+              <div class="name-row">
+                <strong>COACH ATLAS</strong>
+                <span>BLACK BELT</span>
               </div>
-
-              <div class="dojo-sign">ATLAS GYM</div>
-              <div class="dojo-banner">NO EASY ROUNDS</div>
+              <div class="hp-wrap">
+                <span>HP</span>
+                <div class="hp-bar"><div id="atlasHp" class="hp-fill atlas-fill"></div></div>
+              </div>
+              <div class="hp-wrap">
+                <span>ST</span>
+                <div class="hp-bar"><div id="atlasSt" class="hp-fill stamina-fill"></div></div>
+              </div>
             </div>
 
-            <div class="mat-floor"></div>
-          </div>
+            <div class="player-panel">
+              <div class="name-row">
+                <strong>${this.game.state.player.name || "ROOKIE"}</strong>
+                <span>WHITE BELT</span>
+              </div>
+              <div class="hp-wrap">
+                <span>HP</span>
+                <div class="hp-bar"><div id="playerHp" class="hp-fill player-fill"></div></div>
+              </div>
+              <div class="hp-wrap">
+                <span>ST</span>
+                <div class="hp-bar"><div id="playerSt" class="hp-fill stamina-fill"></div></div>
+              </div>
+            </div>
 
-          <div class="enemy-panel">
-            <div class="name-row">
-              <strong>COACH ATLAS</strong>
-              <span>BLACK BELT</span>
-            </div>
-            <div class="hp-wrap">
-              <span>HP</span>
-              <div class="hp-bar"><div id="atlasHp" class="hp-fill atlas-fill"></div></div>
-            </div>
-            <div class="hp-wrap">
-              <span>ST</span>
-              <div class="hp-bar"><div id="atlasSt" class="hp-fill stamina-fill"></div></div>
-            </div>
-          </div>
+            <canvas id="prologuePlayerSprite" class="battle-player-sprite entering-player" width="128" height="192"></canvas>
+            <canvas id="coachAtlasSprite" class="coach-atlas-battle-sprite entering-coach" width="128" height="192"></canvas>
 
-          <div class="player-panel">
-            <div class="name-row">
-              <strong>${this.game.state.player.name || "ROOKIE"}</strong>
-              <span>WHITE BELT</span>
-            </div>
-            <div class="hp-wrap">
-              <span>HP</span>
-              <div class="hp-bar"><div id="playerHp" class="hp-fill player-fill"></div></div>
-            </div>
-            <div class="hp-wrap">
-              <span>ST</span>
-              <div class="hp-bar"><div id="playerSt" class="hp-fill stamina-fill"></div></div>
-            </div>
-          </div>
+            <div id="impactFlash" class="impact-flash"></div>
 
-          <canvas id="prologuePlayerSprite" class="battle-player-sprite entering-player" width="128" height="192"></canvas>
-          <canvas id="coachAtlasSprite" class="coach-atlas-battle-sprite entering-coach" width="128" height="192"></canvas>
-
-          <div id="impactFlash" class="impact-flash"></div>
-
-          <section class="battle-menu">
-            <div id="battleText" class="battle-text"></div>
-            <div id="battleActions" class="battle-actions"></div>
+            <section class="battle-menu">
+              <div id="battleText" class="battle-text"></div>
+              <div id="battleActions" class="battle-actions"></div>
+            </section>
           </section>
+
+          ${renderGameControls()}
         </section>
       </main>
     `;
@@ -100,7 +105,46 @@ export class Prologue {
     this.drawCoachAtlas();
     this.updateBars();
     this.lockIntroAnimations();
+    this.bindGameControls();
     this.showStep();
+  }
+
+  bindGameControls() {
+    document.getElementById("upBtn").onclick = () => this.feedback();
+    document.getElementById("downBtn").onclick = () => this.feedback();
+    document.getElementById("leftBtn").onclick = () => this.feedback();
+
+    document.getElementById("rightBtn").onclick = () => this.primaryAction();
+    document.getElementById("actionBtn").onclick = () => this.primaryAction();
+    document.getElementById("confirmBtn").onclick = () => this.primaryAction();
+
+    document.getElementById("saveBtn").onclick = () => {
+      this.feedback();
+      localStorage.setItem("jiuJitsuIslandSave", JSON.stringify(this.game.state));
+      alert("Game saved.");
+    };
+
+    document.getElementById("exitBtn").onclick = () => {
+      this.feedback();
+      this.game.scenes.goTo("start");
+    };
+  }
+
+  primaryAction() {
+    this.feedback();
+
+    const battleButton = document.getElementById("battleActionBtn");
+
+    if (battleButton) {
+      battleButton.click();
+      return;
+    }
+
+    this.next();
+  }
+
+  feedback() {
+    if (navigator.vibrate) navigator.vibrate(30);
   }
 
   lockIntroAnimations() {
@@ -156,6 +200,8 @@ export class Prologue {
     const atlasHp = document.getElementById("atlasHp");
     const atlasSt = document.getElementById("atlasSt");
 
+    if (!playerHp || !playerSt || !atlasHp || !atlasSt) return;
+
     const playerHpPercent = Math.max(0, (this.playerHp / 60) * 100);
     const playerStPercent = Math.max(0, (this.playerSt / 50) * 100);
 
@@ -174,25 +220,27 @@ export class Prologue {
     const current = this.steps[this.step];
     const text = document.getElementById("battleText");
     const actions = document.getElementById("battleActions");
+    const stage = document.getElementById("battleStage");
 
     actions.innerHTML = "";
-    this.game.root.onclick = null;
+    stage.onclick = null;
 
     if (current.type === "playerMove") {
       text.innerHTML = `<p>What will ${this.game.state.player.name || "ROOKIE"} do?</p>`;
       actions.innerHTML = `<button id="battleActionBtn" class="move-button">${current.move}</button>`;
 
-      document.getElementById("battleActionBtn").onclick = (e) => {
-        e.stopPropagation();
+      document.getElementById("battleActionBtn").onclick = event => {
+        event.stopPropagation();
         this.playPlayerMove(current);
       };
+
       return;
     }
 
     text.innerHTML = `
       ${current.speaker ? `<p class="battle-speaker">${current.speaker}</p>` : ""}
       <p>${current.text}</p>
-      <small>Click / tap / press Enter</small>
+      <small>Tap ACTION / CONFIRM / ▶</small>
     `;
 
     if (current.type === "coachMove") {
@@ -202,7 +250,7 @@ export class Prologue {
     if (current.type === "staminaDrop") {
       this.playerSt = 0;
       this.updateBars();
-      this.fxText("GASSED!", "yellow", 420, 430);
+      this.fxText("GASSED!", "yellow", "42%", "66%");
       this.playSfx("crash");
       this.shake(false);
     }
@@ -217,13 +265,14 @@ export class Prologue {
       return;
     }
 
-    this.keyHandler = (e) => {
+    this.keyHandler = event => {
       if (this.busy) return;
-      if (["Enter", " ", "ArrowRight"].includes(e.key)) this.next();
+      if (["Enter", " ", "ArrowRight"].includes(event.key)) this.next();
     };
 
     document.addEventListener("keydown", this.keyHandler, { once: true });
-    this.game.root.onclick = () => {
+
+    stage.onclick = () => {
       if (!this.busy) this.next();
     };
   }
@@ -239,6 +288,7 @@ export class Prologue {
     this.resetSprite(player);
 
     player.classList.add("player-lunge");
+
     if (current.move === "BLAST DOUBLE") {
       this.playerSt = 25;
     }
@@ -247,9 +297,9 @@ export class Prologue {
       this.playerSt = 0;
     }
 
-this.updateBars();
-    this.hitBurst(310, 355);
-    this.fxText(current.move === "SPAZ" ? "SPAZ!" : "BLAST!", "white", 305, 330);
+    this.updateBars();
+    this.hitBurst("47%", "54%");
+    this.fxText(current.move === "SPAZ" ? "SPAZ!" : "BLAST!", "white", "38%", "50%");
     this.playSfx(current.move === "SPAZ" ? "spaz" : "blast");
     this.pop();
 
@@ -271,14 +321,14 @@ this.updateBars();
 
     this.atlasSt = Math.max(0, this.atlasSt - (finisher ? 8 : 5));
     this.updateBars();
-    
+
     setTimeout(() => {
       player.classList.add("player-hit");
     }, 180);
 
     this.flash("red");
-    this.hitBurst(405, 365);
-    this.fxText(finisher ? "SLEEP BITCH!" : "TRIANGLE!", "red", 560, 210);
+    this.hitBurst("45%", "56%");
+    this.fxText(finisher ? "SLEEP!" : "TRIANGLE!", "red", "44%", "36%");
     this.playSfx(finisher ? "crash" : "triangle");
     this.shake(finisher);
 
@@ -289,9 +339,13 @@ this.updateBars();
   }
 
   next() {
-    if (this.busy) return;
+    if (this.busy || this.ended) return;
+
     document.removeEventListener("keydown", this.keyHandler);
-    this.game.root.onclick = null;
+
+    const stage = document.getElementById("battleStage");
+    if (stage) stage.onclick = null;
+
     this.step += 1;
     this.showStep();
   }
@@ -315,8 +369,8 @@ this.updateBars();
 
     const burst = document.createElement("div");
     burst.className = "hit-burst";
-    burst.style.left = `${x}px`;
-    burst.style.top = `${y}px`;
+    burst.style.left = x;
+    burst.style.top = y;
 
     stage.appendChild(burst);
     setTimeout(() => burst.remove(), 500);
@@ -329,8 +383,8 @@ this.updateBars();
     const fx = document.createElement("div");
     fx.className = `fx-text fx-${colour}`;
     fx.textContent = label;
-    fx.style.left = `${x}px`;
-    fx.style.top = `${y}px`;
+    fx.style.left = x;
+    fx.style.top = y;
 
     stage.appendChild(fx);
     setTimeout(() => fx.remove(), 850);
@@ -364,7 +418,9 @@ this.updateBars();
     if (this.ended) return;
     this.ended = true;
 
-    this.game.root.onclick = null;
+    const stage = document.getElementById("battleStage");
+    if (stage) stage.onclick = null;
+
     document.removeEventListener("keydown", this.keyHandler);
 
     const fadeBlack = document.createElement("div");

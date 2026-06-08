@@ -7,8 +7,9 @@ export class StartScreen {
   render() {
     this.game.audio?.playMusic("chill");
     this.game.root.innerHTML = `
-      <main class="screen start-screen">
-        <section class="title-card">
+<main class="game-screen start-screen">
+  <section class="start-frame">
+    <div class="title-card">
           <div class="logo-circle">
             <div class="stripe pink"></div>
             <div class="stripe orange"></div>
@@ -39,8 +40,9 @@ export class StartScreen {
               <input id="hapticsToggle" type="checkbox" checked>
             </label>
           </div>
-        </section>
-      </main>
+    </div>
+  </section>
+</main>
     `;
 
     this.buttons = [...document.querySelectorAll(".menu-button")].filter(
