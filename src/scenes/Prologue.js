@@ -1,99 +1,176 @@
-import { SpriteRenderer } from "../sprites/SpriteRenderer.js";
-import { NPCS } from "../data/npcs.js";
+import { CharacterSpriteRendererV2 } from "../sprites/CharacterSpriteRendererV2.js";
+import { AnimationController } from "../sprites/AnimationController.js";
 import { renderGameControls } from "../ui/GameControls.js";
+import { getNPC } from "../data/npcs.js";
 
 export class Prologue {
   constructor(game) {
     this.game = game;
     this.step = 0;
-    this.playerHp = 60;
-    this.playerSt = 50;
-    this.atlasHp = 999;
-    this.atlasSt = 100;
-    this.ended = false;
-    this.busy = false;
-    this.keyHandler = null;
+    this.isAnimating = false;
+
+    this.fadeOut = false;
+    this.combatEffect = "";
+    this.screenFlash = "";
+    this.motionClass = "";
+
+    this.playerStatus = { hp: 100, stamina: 100 };
+    this.coachStatus = { hp: 100, stamina: 100 };
+
+    this.playerAnim = new AnimationController({ frameCount: 4, frameMs: 140 });
+    this.coachAnim = new AnimationController({ frameCount: 4, frameMs: 150 });
+
+    this.coachAtlas = getNPC("coachAtlas");
 
     this.steps = [
-      { type: "intro", text: "BJJ BLACK BELT COACH ATLAS wants to battle!" },
-      { type: "dialogue", speaker: "COACH ATLAS", text: "Fuck me, they’re handing out white belts to traffic cones now?" },
-      { type: "playerMove", move: "BLAST DOUBLE", text: "You shoot a blast double!" },
-      { type: "coachMove", text: "Coach Atlas pulls guard and fires up a TRIANGLE!" },
-      { type: "dialogue", speaker: "COACH ATLAS", text: "Cute. You brought wrestling to a strangling contest." },
-      { type: "playerMove", move: "SPAZ", text: "You spaz with maximum white belt energy!" },
-      { type: "staminaDrop", text: "Your stamina crashed to zero!" },
-      { type: "dialogue", speaker: "COACH ATLAS", text: "Excellent. Now you are tired AND trapped." },
-      { type: "coachFinish", text: "Coach Atlas tightens the triangle!" }
+      {
+        type: "dialogue",
+        speaker: "COACH ATLAS",
+        text: "Look at this little white-belt retard. You dress yourself, or did your mum lose a bet?",
+        music: "dojo",
+        playerAnimation: "idle",
+        coachAnimation: "idle"
+      },
+      {
+        type: "choice",
+        speaker: "YOU",
+        text: "Coach Atlas is laughing at you. Your only move is to shoot.",
+        actionLabel: "BLAST DOUBLE",
+        music: "fight",
+        playerAnimation: "run",
+        coachAnimation: "idle",
+        effectText: "CRASH!",
+        flash: "flash-red",
+        motion: "player-attacks",
+        sfx: "crash",
+        effect: () => {
+          this.playerStatus.stamina = 50;
+          this.coachStatus.hp = 95;
+        }
+      },
+      {
+        type: "dialogue",
+        speaker: "YOU",
+        text: "You blast double into him. CRASH! He pulls guards!.",
+        music: "fight",
+        playerAnimation: "idle",
+        coachAnimation: "idle"
+      },
+      {
+        type: "attack",
+        speaker: "COACH ATLAS",
+        text: "Cute. My turn.",
+        music: "fight",
+        playerAnimation: "idle",
+        coachAnimation: "fight",
+        effectText: "POP!",
+        motion: "coach-attacks",
+        sfx: "pop",
+        effect: () => {
+          this.coachStatus.stamina = 90;
+        }
+      },
+      {
+        type: "attack",
+        speaker: "COACH ATLAS",
+        text: "Atlas throws up a triangle like he’s closing a bear trap.",
+        music: "fight",
+        playerAnimation: "bow",
+        coachAnimation: "fight",
+        effectText: "TRIANGLE!",
+        flash: "flash-purple",
+        motion: "coach-attacks triangle-attack",
+        sfx: "triangle",
+        effect: () => {
+          this.playerStatus.hp = 55;
+          this.coachStatus.stamina = 86;
+        }
+      },
+      {
+        type: "choice",
+        speaker: "YOU",
+        text: "You are trapped. Your only option is pure white-belt spaz.",
+        actionLabel: "SPAZ",
+        music: "fight",
+        playerAnimation: "run",
+        coachAnimation: "idle",
+        effectText: "SPAZ!",
+        motion: "player-attacks spaz-attack",
+        sfx: "spaz",
+        effect: () => {
+          this.playerStatus.stamina = 0;
+        }
+      },
+      {
+        type: "dialogue",
+        speaker: "YOU",
+        text: "You spaz with everything you have. Arms, legs, soul, dignity. Your stamina hits zero.",
+        music: "fight",
+        playerAnimation: "bow",
+        coachAnimation: "idle"
+      },
+      {
+        type: "attack",
+        speaker: "COACH ATLAS",
+        text: "Atlas tightens the triangle again.",
+        music: "fight",
+        playerAnimation: "bow",
+        coachAnimation: "fight",
+        effectText: "Zzz",
+        flash: "flash-red",
+        motion: "coach-attacks",
+        sfx: "ko",
+        effect: () => {
+          this.playerStatus.hp = 0;
+          this.coachStatus.stamina = 82;
+        },
+        autoFinish: true
+      },
+      {
+        type: "ko",
+        speaker: "COACH ATLAS",
+        text: "Night night, dickhead.",
+        music: "fight",
+        playerAnimation: "bow",
+        coachAnimation: "idle"
+      }
     ];
   }
 
   render() {
-    this.game.audio?.playMusic?.("battle");
+    const current = this.steps[this.step];
+    this.game.audio?.playMusic(current.music || "dojo");
 
     this.game.root.innerHTML = `
-      <main class="game-screen battle-screen">
-        <section class="battle-frame">
-          <section id="battleStage" class="battle-stage">
-            <div class="dojo-bg">
-              <div class="dojo-wall">
-                <div class="medal-wall left-wall">
-                  <span>🥇</span><span>🥈</span><span>🥇</span><span>🏆</span><span>🥇</span><span>🥉</span><span>🥇</span>
-                  <span>🥈</span><span>🏆</span><span>🥇</span><span>🥇</span><span>🥉</span><span>🏆</span><span>🥇</span>
-                  <span>🥇</span><span>🥇</span><span>🥈</span><span>🏆</span><span>🥇</span><span>🥉</span><span>🥇</span>
-                </div>
-
-                <div class="medal-wall right-wall">
-                  <span>🏆</span><span>🥇</span><span>🥈</span><span>🥇</span><span>🏆</span><span>🥇</span><span>🥉</span>
-                  <span>🥇</span><span>🥇</span><span>🏆</span><span>🥈</span><span>🥇</span><span>🥇</span><span>🏆</span>
-                  <span>🥉</span><span>🥇</span><span>🏆</span><span>🥇</span><span>🥈</span><span>🥇</span><span>🥇</span>
-                </div>
-
-                <div class="dojo-sign">ATLAS GYM</div>
-                <div class="dojo-banner">NO EASY ROUNDS</div>
-              </div>
-
-              <div class="mat-floor"></div>
+      <main class="game-screen prologue-screen ${this.fadeOut ? "fade-out" : ""} ${this.screenFlash}">
+        <section class="prologue-frame">
+          <section class="dojo-scene ${this.motionClass}">
+            <div class="dojo-wall">
+              <div class="dojo-sign">ATLAS GYM</div>
+              <div class="dojo-subtitle">WHITE BELT KILLER</div>
+              <div class="trophy-wall">${this.renderTrophyWall()}</div>
             </div>
 
-            <div class="enemy-panel">
-              <div class="name-row">
-                <strong>COACH ATLAS</strong>
-                <span>BLACK BELT</span>
-              </div>
-              <div class="hp-wrap">
-                <span>HP</span>
-                <div class="hp-bar"><div id="atlasHp" class="hp-fill atlas-fill"></div></div>
-              </div>
-              <div class="hp-wrap">
-                <span>ST</span>
-                <div class="hp-bar"><div id="atlasSt" class="hp-fill stamina-fill"></div></div>
-              </div>
+            <div class="dojo-floor">
+              ${this.renderFighterCard("coach", this.coachAtlas.name, "BLACK BELT", this.coachStatus)}
+              ${this.renderFighterCard("player", this.game.state.player.name, "WHITE BELT", this.playerStatus)}
+
+              <div class="impact-ring"></div>
+              <div class="dust-burst dust-player"></div>
+              <div class="dust-burst dust-coach"></div>
+
+              ${this.combatEffect ? `<div class="combat-effect ${this.getEffectClass(this.combatEffect)}">${this.combatEffect}</div>` : ""}
+            </div>
+          </section>
+
+          <section class="dialogue-box">
+            <div class="dialogue-topline">
+              <p class="dialogue-speaker">${current.speaker}</p>
+              <p class="dialogue-progress">${this.step + 1}/${this.steps.length}</p>
             </div>
 
-            <div class="player-panel">
-              <div class="name-row">
-                <strong>${this.game.state.player.name || "ROOKIE"}</strong>
-                <span>WHITE BELT</span>
-              </div>
-              <div class="hp-wrap">
-                <span>HP</span>
-                <div class="hp-bar"><div id="playerHp" class="hp-fill player-fill"></div></div>
-              </div>
-              <div class="hp-wrap">
-                <span>ST</span>
-                <div class="hp-bar"><div id="playerSt" class="hp-fill stamina-fill"></div></div>
-              </div>
-            </div>
-
-            <canvas id="prologuePlayerSprite" class="battle-player-sprite entering-player" width="128" height="192"></canvas>
-            <canvas id="coachAtlasSprite" class="coach-atlas-battle-sprite entering-coach" width="128" height="192"></canvas>
-
-            <div id="impactFlash" class="impact-flash"></div>
-
-            <section class="battle-menu">
-              <div id="battleText" class="battle-text"></div>
-              <div id="battleActions" class="battle-actions"></div>
-            </section>
+            <p class="dialogue-text">${current.text}</p>
+            ${this.renderActionArea(current)}
           </section>
 
           ${renderGameControls()}
@@ -101,380 +178,213 @@ export class Prologue {
       </main>
     `;
 
-    this.drawPlayerSprite();
-    this.drawCoachAtlas();
-    this.updateBars();
-    this.lockIntroAnimations();
-    this.bindGameControls();
-    this.showStep();
+    this.bindControls();
+    this.drawSprites();
+
+    this.playerAnim.start(() => this.drawSprites());
+    this.coachAnim.start(() => this.drawSprites());
   }
 
-  bindGameControls() {
-    document.getElementById("upBtn").onclick = () => this.feedback();
-    document.getElementById("downBtn").onclick = () => this.feedback();
-    document.getElementById("leftBtn").onclick = () => this.feedback();
+  renderTrophyWall() {
+    return [
+      "🏆", "🥇", "🥈", "🥉", "🥇", "🥈", "🏆",
+      "🥇", "🥉", "🥇", "🏆", "🥈", "🥇", "🥉",
+      "🥈", "🥇", "🏆", "🥉", "🥇", "🥈", "🥇"
+    ].map(item => `<span>${item}</span>`).join("");
+  }
 
-    document.getElementById("rightBtn").onclick = () => this.primaryAction();
-    document.getElementById("actionBtn").onclick = () => this.primaryAction();
-    document.getElementById("confirmBtn").onclick = () => this.primaryAction();
+  renderFighterCard(type, name, rank, status) {
+    const hpClass = status.hp <= 35 ? "low" : "";
+
+    return `
+      <div class="fighter-card ${type}-card">
+        <div class="status-panel">
+          <div class="status-name">${name} · ${rank}</div>
+          <div class="bar-row">
+            <span>HP</span>
+            <div class="bar hp ${hpClass}">
+              <i style="width:${status.hp}%"></i>
+            </div>
+          </div>
+          <div class="bar-row">
+            <span>STA</span>
+            <div class="bar stamina">
+              <i style="width:${status.stamina}%"></i>
+            </div>
+          </div>
+        </div>
+
+        <canvas id="${type}Canvas" width="192" height="256"></canvas>
+      </div>
+    `;
+  }
+
+  renderActionArea(current) {
+    if (current.type !== "choice") {
+      return `<small>${this.isAnimating ? "..." : "Tap ACTION / CONFIRM"}</small>`;
+    }
+
+    return `
+      <div class="combat-menu">
+        <button id="combatActionBtn" class="combat-action" ${this.isAnimating ? "disabled" : ""}>
+          ${current.actionLabel}
+        </button>
+      </div>
+    `;
+  }
+
+  getEffectClass(effectText) {
+    if (effectText === "CRASH!") return "crash";
+    if (effectText === "TRIANGLE!") return "triangle";
+    if (effectText === "POP!") return "pop";
+    if (effectText === "SPAZ!") return "spaz";
+    if (effectText === "Zzz") return "sleep";
+    return "";
+  }
+
+  drawSprites() {
+    const current = this.steps[this.step];
+    const playerCanvas = document.getElementById("playerCanvas");
+    const coachCanvas = document.getElementById("coachCanvas");
+
+    if (playerCanvas) {
+      CharacterSpriteRendererV2.draw(playerCanvas, this.game.state.player, {
+        animation: current.playerAnimation || "walking",
+        frame: current.playerAnimation === "walking" ? 0 : this.playerAnim.frame
+      });
+    }
+
+    if (coachCanvas && this.coachAtlas) {
+      CharacterSpriteRendererV2.draw(coachCanvas, this.coachAtlas, {
+        animation: current.coachAnimation || "idle",
+        frame: current.coachAnimation === "idle" ? 0 : this.coachAnim.frame
+      });
+    }
+  }
+
+  bindControls() {
+    const advance = () => this.advance();
+
+    document.getElementById("actionBtn").onclick = advance;
+    document.getElementById("confirmBtn").onclick = advance;
+    document.getElementById("combatActionBtn")?.addEventListener("click", advance);
 
     document.getElementById("saveBtn").onclick = () => {
-      this.feedback();
+      if (this.isAnimating) return;
       localStorage.setItem("jiuJitsuIslandSave", JSON.stringify(this.game.state));
       alert("Game saved.");
     };
 
     document.getElementById("exitBtn").onclick = () => {
-      this.feedback();
+      if (this.isAnimating) return;
+      this.stopAnimations();
       this.game.scenes.goTo("start");
     };
+
+    document.getElementById("upBtn").onclick = () => {};
+    document.getElementById("downBtn").onclick = () => {};
+    document.getElementById("leftBtn").onclick = () => {};
+    document.getElementById("rightBtn").onclick = () => {};
   }
 
-  primaryAction() {
-    this.feedback();
-
-    const battleButton = document.getElementById("battleActionBtn");
-
-    if (battleButton) {
-      battleButton.click();
-      return;
-    }
-
-    this.next();
-  }
-
-  feedback() {
-    if (navigator.vibrate) navigator.vibrate(30);
-  }
-
-  lockIntroAnimations() {
-    const player = document.getElementById("prologuePlayerSprite");
-    const coach = document.getElementById("coachAtlasSprite");
-
-    player?.addEventListener("animationend", () => this.resetSprite(player), { once: true });
-    coach?.addEventListener("animationend", () => this.resetSprite(coach), { once: true });
-  }
-
-  resetSprite(sprite) {
-    if (!sprite) return;
-    sprite.classList.remove("entering-player", "entering-coach", "player-lunge", "coach-attack", "player-hit");
-    sprite.style.animation = "none";
-    sprite.style.transform = "translate3d(0, 0, 0)";
-    sprite.style.filter = "none";
-    void sprite.offsetWidth;
-    sprite.style.animation = "";
-  }
-
-  drawPlayerSprite() {
-    const target = document.getElementById("prologuePlayerSprite");
-    if (!target) return;
-
-    const ctx = target.getContext("2d");
-    ctx.imageSmoothingEnabled = false;
-    ctx.clearRect(0, 0, target.width, target.height);
-
-    const savedSprite = this.game.state.player.spriteDataUrl;
-
-    if (savedSprite) {
-      const img = new Image();
-      img.onload = () => {
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(img, 0, 0, target.width, target.height);
-      };
-      img.src = savedSprite;
-      return;
-    }
-
-    SpriteRenderer.draw(target, this.game.state.player);
-  }
-
-  drawCoachAtlas() {
-    const canvas = document.getElementById("coachAtlasSprite");
-    if (!canvas) return;
-    SpriteRenderer.draw(canvas, NPCS.coachAtlas);
-  }
-
-  updateBars() {
-    const playerHp = document.getElementById("playerHp");
-    const playerSt = document.getElementById("playerSt");
-    const atlasHp = document.getElementById("atlasHp");
-    const atlasSt = document.getElementById("atlasSt");
-
-    if (!playerHp || !playerSt || !atlasHp || !atlasSt) return;
-
-    const playerHpPercent = Math.max(0, (this.playerHp / 60) * 100);
-    const playerStPercent = Math.max(0, (this.playerSt / 50) * 100);
-
-    playerHp.style.width = `${playerHpPercent}%`;
-    playerSt.style.width = `${playerStPercent}%`;
-    atlasHp.style.width = "100%";
-    atlasSt.style.width = `${Math.max(0, this.atlasSt)}%`;
-
-    playerHp.classList.toggle("low-health", playerHpPercent <= 25);
-    atlasHp.classList.toggle("low-health", false);
-  }
-
-  showStep() {
-    if (this.ended || this.busy) return;
+  advance() {
+    if (this.isAnimating) return;
 
     const current = this.steps[this.step];
-    const text = document.getElementById("battleText");
-    const actions = document.getElementById("battleActions");
-    const stage = document.getElementById("battleStage");
 
-    actions.innerHTML = "";
-    stage.onclick = null;
-
-    if (current.type === "playerMove") {
-      text.innerHTML = `<p>What will ${this.game.state.player.name || "ROOKIE"} do?</p>`;
-      actions.innerHTML = `<button id="battleActionBtn" class="move-button">${current.move}</button>`;
-
-      document.getElementById("battleActionBtn").onclick = event => {
-        event.stopPropagation();
-        this.playPlayerMove(current);
-      };
-
+    if (current.type === "ko") {
+      this.finishPrologue();
       return;
     }
 
-    text.innerHTML = `
-      ${current.speaker ? `<p class="battle-speaker">${current.speaker}</p>` : ""}
-      <p>${current.text}</p>
-      <small>Tap ACTION / CONFIRM / ▶</small>
-    `;
-
-    if (current.type === "coachMove") {
-      this.coachAttackAnimation(false);
-    }
-
-    if (current.type === "staminaDrop") {
-      this.playerSt = 0;
-      this.updateBars();
-      this.fxText("GASSED!", "yellow", "42%", "66%");
-      this.playSfx("crash");
-      this.shake(false);
-    }
-
-    if (current.type === "coachFinish") {
-      this.playerHp = 0;
-      this.updateBars();
-      this.coachAttackAnimation(true);
-
-      setTimeout(() => this.playSfx("sleep"), 700);
-      setTimeout(() => this.endPrologue(), 1800);
+    if (current.effectText || current.effect) {
+      this.playStepEffect(current);
       return;
     }
 
-    this.keyHandler = event => {
-      if (this.busy) return;
-      if (["Enter", " ", "ArrowRight"].includes(event.key)) this.next();
-    };
-
-    document.addEventListener("keydown", this.keyHandler, { once: true });
-
-    stage.onclick = () => {
-      if (!this.busy) this.next();
-    };
+    this.step += 1;
+    this.render();
   }
 
-  playPlayerMove(current) {
-    if (this.busy) return;
-    this.busy = true;
-
-    document.getElementById("battleText").innerHTML = `<p>${current.text}</p>`;
-    document.getElementById("battleActions").innerHTML = "";
-
-    const player = document.getElementById("prologuePlayerSprite");
-    this.resetSprite(player);
-
-    player.classList.add("player-lunge");
-
-    if (current.move === "BLAST DOUBLE") {
-      this.playerSt = 25;
-    }
-
-    if (current.move === "SPAZ") {
-      this.playerSt = 0;
-    }
-
-    this.updateBars();
-    this.hitBurst("47%", "54%");
-    this.fxText(current.move === "SPAZ" ? "SPAZ!" : "BLAST!", "white", "38%", "50%");
-    this.playSfx(current.move === "SPAZ" ? "spaz" : "blast");
-    this.pop();
+  playStepEffect(current) {
+    this.isAnimating = true;
+    this.combatEffect = "";
+    this.screenFlash = "";
+    this.motionClass = "";
+    this.render();
 
     setTimeout(() => {
-      this.resetSprite(player);
-      this.busy = false;
-      this.next();
-    }, 750);
+      if (current.effect) current.effect();
+
+      this.combatEffect = current.effectText || "";
+      this.screenFlash = current.flash || "";
+      this.motionClass = current.motion || "";
+
+      this.triggerCombatFeedback(this.combatEffect, current.sfx);
+      this.render();
+
+      setTimeout(() => {
+        this.combatEffect = "";
+        this.screenFlash = "";
+        this.motionClass = "";
+        this.isAnimating = false;
+
+        if (current.autoFinish) {
+          this.step += 1;
+
+          const speaker = document.querySelector(".dialogue-speaker");
+          const text = document.querySelector(".dialogue-text");
+          const progress = document.querySelector(".dialogue-progress");
+
+          if (speaker) speaker.textContent = "COACH ATLAS";
+          if (text) text.textContent = "Night night, dickhead.";
+          if (progress) progress.textContent = `${this.step + 1}/${this.steps.length}`;
+
+          setTimeout(() => this.finishPrologue(), 500);
+          return;
+        }
+
+        this.step += 1;
+        this.render();
+      }, 900);
+    }, 100);
   }
 
-  coachAttackAnimation(finisher = false) {
-    const coach = document.getElementById("coachAtlasSprite");
-    const player = document.getElementById("prologuePlayerSprite");
+  triggerCombatFeedback(effectText, sfx) {
+    if (navigator.vibrate) {
+      if (effectText === "CRASH!") navigator.vibrate([90, 40, 120]);
+      else if (effectText === "TRIANGLE!") navigator.vibrate([60, 30, 80]);
+      else if (effectText === "SPAZ!") navigator.vibrate([40, 30, 40, 30, 80]);
+      else if (effectText === "Zzz") navigator.vibrate([160, 80, 160]);
+      else navigator.vibrate(60);
+    }
 
-    this.resetSprite(coach);
-    this.resetSprite(player);
+    this.game.audio?.playSfx?.(sfx || "hit");
+  }
 
-    coach.classList.add("coach-attack");
+  finishPrologue() {
+    if (this.fadeOut) return;
 
-    this.atlasSt = Math.max(0, this.atlasSt - (finisher ? 8 : 5));
-    this.updateBars();
+    this.fadeOut = true;
+    this.isAnimating = true;
+
+    const screen = document.querySelector(".prologue-screen");
+    const scene = document.querySelector(".dojo-scene");
+    const playerCanvas = document.getElementById("playerCanvas");
+
+    scene?.classList.add("ko-attack");
+    screen?.classList.add("fade-out");
+    playerCanvas?.classList.add("player-ko-fall");
 
     setTimeout(() => {
-      player.classList.add("player-hit");
-    }, 180);
-
-    this.flash("red");
-    this.hitBurst("45%", "56%");
-    this.fxText(finisher ? "SLEEP!" : "TRIANGLE!", "red", "44%", "36%");
-    this.playSfx(finisher ? "crash" : "triangle");
-    this.shake(finisher);
-
-    setTimeout(() => {
-      this.resetSprite(coach);
-      this.resetSprite(player);
+      this.game.state.progress.prologueComplete = true;
+      this.stopAnimations();
+      this.game.scenes.goTo("islandMap");
     }, 1400);
   }
 
-  next() {
-    if (this.busy || this.ended) return;
-
-    document.removeEventListener("keydown", this.keyHandler);
-
-    const stage = document.getElementById("battleStage");
-    if (stage) stage.onclick = null;
-
-    this.step += 1;
-    this.showStep();
-  }
-
-  flash(type = "white") {
-    const flash = document.getElementById("impactFlash");
-    if (!flash) return;
-
-    flash.classList.remove("white-hit", "red-hit");
-    void flash.offsetWidth;
-    flash.classList.add(type === "red" ? "red-hit" : "white-hit");
-
-    setTimeout(() => {
-      flash.classList.remove("white-hit", "red-hit");
-    }, 420);
-  }
-
-  hitBurst(x, y) {
-    const stage = document.getElementById("battleStage");
-    if (!stage) return;
-
-    const burst = document.createElement("div");
-    burst.className = "hit-burst";
-    burst.style.left = x;
-    burst.style.top = y;
-
-    stage.appendChild(burst);
-    setTimeout(() => burst.remove(), 500);
-  }
-
-  fxText(label, colour, x, y) {
-    const stage = document.getElementById("battleStage");
-    if (!stage) return;
-
-    const fx = document.createElement("div");
-    fx.className = `fx-text fx-${colour}`;
-    fx.textContent = label;
-    fx.style.left = x;
-    fx.style.top = y;
-
-    stage.appendChild(fx);
-    setTimeout(() => fx.remove(), 850);
-  }
-
-  shake(big = false) {
-    const stage = document.getElementById("battleStage");
-    if (!stage) return;
-
-    stage.classList.remove("shake", "big-shake");
-    void stage.offsetWidth;
-    stage.classList.add(big ? "big-shake" : "shake");
-
-    setTimeout(() => {
-      stage.classList.remove("shake", "big-shake");
-    }, big ? 750 : 400);
-  }
-
-  pop() {
-    const stage = document.getElementById("battleStage");
-    if (!stage) return;
-
-    stage.classList.remove("pop");
-    void stage.offsetWidth;
-    stage.classList.add("pop");
-
-    setTimeout(() => stage.classList.remove("pop"), 250);
-  }
-
-  endPrologue() {
-    if (this.ended) return;
-    this.ended = true;
-
-    const stage = document.getElementById("battleStage");
-    if (stage) stage.onclick = null;
-
-    document.removeEventListener("keydown", this.keyHandler);
-
-    const fadeBlack = document.createElement("div");
-    fadeBlack.className = "battle-fade black";
-    document.body.appendChild(fadeBlack);
-
-    setTimeout(() => {
-      this.game.root.innerHTML = `<main class="fade-white"></main>`;
-      fadeBlack.remove();
-
-      const fadeWhite = document.createElement("div");
-      fadeWhite.className = "battle-fade white";
-      document.body.appendChild(fadeWhite);
-
-      setTimeout(() => {
-        fadeWhite.remove();
-        this.game.scenes.goTo("hospital");
-      }, 1500);
-    }, 2000);
-  }
-
-  playSfx(type) {
-    if (this.game.audio?.sfx) {
-      this.game.audio.sfx(type);
-      return;
-    }
-
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-
-    const audio = new AudioCtx();
-    const osc = audio.createOscillator();
-    const gain = audio.createGain();
-
-    const sounds = {
-      blast: { freq: 90, duration: 0.16, type: "sawtooth" },
-      triangle: { freq: 180, duration: 0.22, type: "square" },
-      spaz: { freq: 420, duration: 0.12, type: "square" },
-      crash: { freq: 60, duration: 0.35, type: "sawtooth" },
-      sleep: { freq: 120, duration: 0.9, type: "sine" }
-    };
-
-    const s = sounds[type] || sounds.blast;
-
-    osc.frequency.value = s.freq;
-    osc.type = s.type;
-
-    gain.gain.setValueAtTime(0.08, audio.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + s.duration);
-
-    osc.connect(gain);
-    gain.connect(audio.destination);
-
-    osc.start();
-    osc.stop(audio.currentTime + s.duration);
+  stopAnimations() {
+    this.playerAnim.stop();
+    this.coachAnim.stop();
   }
 }

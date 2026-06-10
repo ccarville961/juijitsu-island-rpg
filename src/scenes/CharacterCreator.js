@@ -1,22 +1,29 @@
-import { SpriteRenderer } from "../sprites/SpriteRenderer.js";
 import { renderGameControls } from "../ui/GameControls.js";
+import { applyDefaultAppearance } from "../character/PlayerAppearance.js";
+import { AnimationController } from "../sprites/AnimationController.js";
+import { CharacterSpriteRendererV2 } from "../sprites/CharacterSpriteRendererV2.js";
 
 export class CharacterCreator {
   constructor(game) {
     this.game = game;
     this.selectedIndex = 1;
 
+    this.previewAnimation = new AnimationController({
+      frameCount: 4,
+      frameMs: 170
+    });
+
     this.options = [
       { key: "name", label: "Name", type: "input" },
       { key: "body", label: "Physique", values: ["small", "average", "athletic", "strong", "heavy"] },
       { key: "height", label: "Height", values: ["short", "medium", "tall"] },
-      { key: "hair", label: "Hair Style", values: ["short", "messy", "spiky", "curly", "long", "ponytail", "bald"] },
-      { key: "hairColor", label: "Hair Colour", values: ["black", "brown", "blonde", "red", "grey"] },
-      { key: "face", label: "Face", values: ["focused", "calm", "serious", "smile", "scar"] },
+      { key: "hair", label: "Hair Style", values: ["short", "messy", "spiky", "curly", "long", "ponytail", "mullet", "mohawk", "bald"] },
+      { key: "hairColor", label: "Hair Colour", values: ["black", "brown", "blonde", "red", "grey", "pink"] },
+      { key: "face", label: "Face", values: ["focused", "calm", "serious", "angry", "smile", "scar"] },
       { key: "glasses", label: "Glasses", values: ["none", "round", "square", "shades"] },
       { key: "skin", label: "Skin Colour", values: ["pale", "fair", "tan", "brown", "dark"] },
       { key: "beard", label: "Beard", values: ["none", "stubble", "goatee", "full"] },
-      { key: "outfit", label: "Clothing", values: ["naked", "white-gi", "blue-gi", "black-gi", "rashguard", "gym-vest", "gym-tee", "hoodie", "suit", "doctor", "striped", "casual"] },
+      { key: "outfit", label: "Clothing", values: ["white-gi", "blue-gi", "black-gi", "rashguard", "gym-vest", "gym-tee", "hoodie", "suit", "doctor", "striped", "casual", "naked"] },
       { key: "confirm", label: "Confirm Design", values: ["START GAME"] }
     ];
   }
@@ -24,27 +31,22 @@ export class CharacterCreator {
   render() {
     this.game.audio?.playMusic("chill");
 
-    const player = this.game.state.player;
+    const player = applyDefaultAppearance(this.game.state.player);
 
-    player.name ??= "Rookie";
-    player.body ??= "average";
-    player.height ??= "medium";
-    player.hair ??= "short";
-    player.hairColor ??= "brown";
-    player.face ??= "focused";
-    player.glasses ??= "none";
-    player.skin ??= "pale";
-    player.beard ??= "none";
-    player.outfit ??= "white-gi";
+    player.belt = "white";
+    player.level = player.level ?? 1;
+    player.xp = player.xp ?? 0;
+
+    this.syncSpritePack(player);
 
     this.game.root.innerHTML = `
       <main class="game-screen creator-screen">
         <section class="creator-frame">
           <section class="creator-shell">
             <section class="preview-box compact-preview">
-              <h2>CHARACTER</h2>
+              <h2>WHITE BELT</h2>
               <div class="preview-stage">
-                <canvas id="spriteCanvas" width="128" height="192"></canvas>
+                <canvas id="spriteCanvas" width="192" height="256"></canvas>
               </div>
             </section>
 
@@ -60,13 +62,45 @@ export class CharacterCreator {
 
     this.bindControls();
     this.drawSprite();
+    this.previewAnimation.start(() => this.drawSprite());
   }
+
+  syncSpritePack(player) {
+    player.belt = "white";
+
+    const outfit = player.outfit || "white-gi";
+
+    const spritePackMap = {
+      naked: "naked",
+
+      "white-gi": "white-gi-white-belt",
+      "blue-gi": "blue-gi-white-belt",
+      "black-gi": "black-gi-white-belt",
+
+      rashguard: "rashguard",
+      "gym-vest": "gym-vest",
+      "gym-tee": "gym-tee",
+      hoodie: "hoodie",
+      suit: "suit",
+      doctor: "doctor",
+      striped: "striped",
+      casual: "casual",
+      naked: "naked"
+    };
+
+  player.spritePack = spritePackMap[outfit] || "white-gi-white-belt";
+}
 
   drawSprite() {
     const canvas = document.getElementById("spriteCanvas");
     if (!canvas) return;
 
-    SpriteRenderer.draw(canvas, this.game.state.player);
+    this.syncSpritePack(this.game.state.player);
+
+    CharacterSpriteRendererV2.draw(canvas, this.game.state.player, {
+      animation: "idle",
+      frame: this.previewAnimation.frame
+    });
   }
 
   renderOption(option, index) {
@@ -187,13 +221,8 @@ export class CharacterCreator {
   move(direction) {
     this.selectedIndex += direction;
 
-    if (this.selectedIndex < 0) {
-      this.selectedIndex = this.options.length - 1;
-    }
-
-    if (this.selectedIndex >= this.options.length) {
-      this.selectedIndex = 0;
-    }
+    if (this.selectedIndex < 0) this.selectedIndex = this.options.length - 1;
+    if (this.selectedIndex >= this.options.length) this.selectedIndex = 0;
 
     this.feedback();
     this.render();
@@ -215,21 +244,15 @@ export class CharacterCreator {
     const currentValue = this.game.state.player[option.key];
     let currentIndex = option.values.indexOf(currentValue);
 
-    if (currentIndex === -1) {
-      currentIndex = 0;
-    }
+    if (currentIndex === -1) currentIndex = 0;
 
     let nextIndex = currentIndex + direction;
 
-    if (nextIndex < 0) {
-      nextIndex = option.values.length - 1;
-    }
-
-    if (nextIndex >= option.values.length) {
-      nextIndex = 0;
-    }
+    if (nextIndex < 0) nextIndex = option.values.length - 1;
+    if (nextIndex >= option.values.length) nextIndex = 0;
 
     this.game.state.player[option.key] = option.values[nextIndex];
+    this.syncSpritePack(this.game.state.player);
 
     this.feedback();
     this.render();
@@ -249,21 +272,29 @@ export class CharacterCreator {
     this.change(1);
   }
 
-  confirm() {
+  async confirm() {
     this.save(false);
     this.feedback();
 
-    const canvas = document.getElementById("spriteCanvas");
+    this.syncSpritePack(this.game.state.player);
 
-    if (canvas) {
-      this.game.state.player.spriteDataUrl = canvas.toDataURL("image/png");
-    }
+    this.game.state.player.spriteDataUrl = await CharacterSpriteRendererV2.toDataUrl(
+      this.game.state.player,
+      {
+        width: 192,
+        height: 256,
+        animation: "idle",
+        frame: 0
+      }
+    );
 
+    this.previewAnimation.stop();
     this.game.scenes.goTo("prologue");
   }
 
   save(showMessage = true) {
-    this.feedback();
+    this.syncSpritePack(this.game.state.player);
+
     localStorage.setItem("jiuJitsuIslandSave", JSON.stringify(this.game.state));
 
     if (showMessage) {
@@ -273,6 +304,7 @@ export class CharacterCreator {
 
   exit() {
     this.feedback();
+    this.previewAnimation.stop();
     this.game.scenes.goTo("start");
   }
 

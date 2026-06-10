@@ -9,11 +9,13 @@ export const NPCS = {
     height: "medium",
     hair: "bald",
     hairColor: "brown",
-    face: "serious",
+    face: "angry",
     glasses: "none",
     skin: "tan",
     beard: "none",
-    outfit: "black-gi"
+    outfit: "black-gi",
+    belt: "black",
+    spritePack: "black-gi-black-belt"
   },
 
   coachMcCallister: {
@@ -695,5 +697,28 @@ export const NPCS = {
 };
 
 export function getNPC(id) {
-  return structuredClone(NPCS[id]);
+  const npc = NPCS[id];
+
+  if (!npc) {
+    console.warn(`Missing NPC: ${id}`);
+    return null;
+  }
+
+  const clone = structuredClone(npc);
+
+  clone.spriteType ??= id === "coachAtlas" ? "coach" : "npc";
+  clone.belt ??= clone.outfit?.includes("gi") ? "white" : "none";
+
+  if (!clone.spritePack) {
+    if (["white-gi", "blue-gi", "black-gi"].includes(clone.outfit)) {
+      clone.spritePack = `${clone.outfit}-${clone.belt}-belt`;
+    } else {
+      clone.spritePack = clone.outfit;
+    }
+  }
+
+  clone.hp ??= 100;
+  clone.stamina ??= 100;
+
+  return clone;
 }

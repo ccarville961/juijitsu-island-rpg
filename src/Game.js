@@ -13,8 +13,18 @@ export class Game {
       player: {
         name: "Rookie",
         body: "average",
+        height: "medium",
         hair: "short",
-        outfit: "gi"
+        hairColor: "brown",
+        face: "focused",
+        glasses: "none",
+        skin: "tan",
+        beard: "none",
+        outfit: "white-gi",
+        belt: "white",
+        spritePack: "white-gi-white-belt",
+        level: 1,
+        xp: 0
       },
       progress: {
         prologueComplete: false
