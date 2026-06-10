@@ -100,18 +100,19 @@ export const NPCS = {
   // STORY / SERVICE NPCs
   // ======================================================
 
-  doctorKimura: {
-    name: "Doctor Kimura",
-    body: "average",
-    height: "medium",
-    hair: "short",
-    hairColor: "grey",
-    face: "calm",
-    glasses: "round",
-    skin: "fair",
-    beard: "none",
-    outfit: "doctor"
-  },
+doctorKimura: {
+  name: "Doctor Kimura",
+  body: "average",
+  height: "medium",
+  hair: "short",
+  hairColor: "grey",
+  face: "calm",
+  glasses: "round",
+  skin: "fair",
+  beard: "none",
+  outfit: "doctor",
+  belt: "none"
+},
 
   shopkeeperMina: {
     name: "Mina",

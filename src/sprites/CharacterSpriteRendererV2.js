@@ -59,11 +59,13 @@ export const CharacterSpriteRendererV2 = {
   },
 
   recolourSprite(sourceCanvas, character) {
-    const ctx = sourceCanvas.getContext("2d");
+    const ctx = sourceCanvas.getContext("2d", {
+      willReadFrequently: true
+    });
+
     const imageData = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
     const data = imageData.data;
     const tint = this.getTintColours(character);
-
     const skinRGB = this.hexToRgb(tint.skin);
 
     for (let i = 0; i < data.length; i += 4) {
@@ -119,34 +121,39 @@ export const CharacterSpriteRendererV2 = {
   },
 
   getBodyAnchorY(sourceCanvas) {
-  const ctx = sourceCanvas.getContext("2d");
-  const imageData = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
-  const data = imageData.data;
+    const ctx = sourceCanvas.getContext("2d", {
+      willReadFrequently: true
+    });
 
-  for (let y = 56; y <= 72; y++) {
-    let solidPixels = 0;
+    const imageData = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+    const data = imageData.data;
 
-    for (let x = 34; x <= 62; x++) {
-      const alpha = data[(y * sourceCanvas.width + x) * 4 + 3];
-      if (alpha > 20) solidPixels++;
+    for (let y = 56; y <= 72; y++) {
+      let solidPixels = 0;
+
+      for (let x = 34; x <= 62; x++) {
+        const alpha = data[(y * sourceCanvas.width + x) * 4 + 3];
+        if (alpha > 20) solidPixels++;
+      }
+
+      if (solidPixels >= 12) {
+        return y - 8;
+      }
     }
 
-    if (solidPixels >= 12) {
-      return y - 8;
-    }
-  }
-
-  return 48;
-},
+    return 48;
+  },
 
   drawCustomHead(sourceCanvas, character, frame = 0) {
-    const ctx = sourceCanvas.getContext("2d");
+    const ctx = sourceCanvas.getContext("2d", {
+      willReadFrequently: true
+    });
+
     const tint = this.getTintColours(character);
 
     const skin = tint.skin;
     const hair = tint.hair;
     const outline = "#050510";
-    const shadow = "#5a3424";
     const scar = "#ff2fa3";
 
     const px = (x, y, w, h, colour) => {
@@ -159,40 +166,29 @@ export const CharacterSpriteRendererV2 = {
     const beard = character?.beard || "none";
     const glasses = character?.glasses || "none";
 
-    const headBob = 0;
-
-    // Clear old baked head/hair area.
     ctx.clearRect(14, 0, 72, 56);
 
-    // Find where the current body frame actually is.
     const neckY = this.getBodyAnchorY(sourceCanvas);
-
     const headX = 35;
     const headY = neckY - 24;
 
-    // Neck + body bridge.
     px(42, neckY, 14, 12, outline);
     px(45, neckY, 8, 11, skin);
 
-    // Small collar cover so head connects cleanly to outfit.
     px(39, neckY + 8, 20, 5, outline);
     px(43, neckY + 8, 12, 4, skin);
 
-    // Head base.
     px(headX, headY, 28, 28, outline);
     px(headX + 2, headY + 2, 24, 25, skin);
 
-    // Simple shading.
     px(headX + 4, headY + 3, 16, 5, "rgba(255,255,255,0.22)");
     px(headX + 5, headY + 21, 18, 5, "rgba(0,0,0,0.22)");
 
-    // Ears.
     px(headX - 4, headY + 11, 5, 11, outline);
     px(headX + 27, headY + 11, 5, 11, outline);
     px(headX - 3, headY + 12, 3, 8, skin);
     px(headX + 27, headY + 12, 3, 8, skin);
 
-    // Hair.
     if (hairStyle !== "bald") {
       if (hairStyle === "short") {
         px(headX - 2, headY - 7, 32, 10, outline);
@@ -200,7 +196,6 @@ export const CharacterSpriteRendererV2 = {
         px(headX + 3, headY - 10, 8, 5, hair);
         px(headX + 13, headY - 11, 8, 5, hair);
         px(headX + 22, headY - 9, 5, 5, hair);
-
         px(headX - 3, headY - 1, 6, 11, outline);
         px(headX + 26, headY, 5, 10, outline);
         px(headX - 1, headY, 3, 8, hair);
@@ -261,11 +256,9 @@ export const CharacterSpriteRendererV2 = {
         px(headX - 3, headY + 3, 8, 24, outline);
         px(headX + 24, headY + 3, 8, 24, outline);
         px(headX + 6, headY + 20, 18, 13, outline);
-
         px(headX - 1, headY - 9, 30, 10, hair);
         px(headX + 4, headY - 12, 8, 6, hair);
         px(headX + 15, headY - 13, 8, 7, hair);
-
         px(headX - 1, headY + 4, 5, 20, hair);
         px(headX + 26, headY + 4, 4, 20, hair);
         px(headX + 8, headY + 22, 14, 9, hair);
@@ -274,7 +267,6 @@ export const CharacterSpriteRendererV2 = {
       if (hairStyle === "mohawk") {
         px(headX + 9, headY - 22, 11, 25, outline);
         px(headX + 11, headY - 24, 7, 26, hair);
-
         px(headX - 3, headY - 1, 7, 13, outline);
         px(headX + 25, headY - 1, 7, 13, outline);
         px(headX - 1, headY, 4, 10, hair);
@@ -282,10 +274,8 @@ export const CharacterSpriteRendererV2 = {
       }
     }
 
-    // Clear face details area before drawing expression.
     px(headX + 4, headY + 8, 21, 19, skin);
 
-    // Eyes / brows / expression.
     if (face === "calm") {
       px(headX + 6, headY + 13, 7, 2, outline);
       px(headX + 17, headY + 13, 7, 2, outline);
@@ -303,13 +293,10 @@ export const CharacterSpriteRendererV2 = {
     if (face === "angry") {
       px(headX + 5, headY + 8, 9, 3, outline);
       px(headX + 16, headY + 8, 9, 3, outline);
-
       px(headX + 6, headY + 10, 8, 2, outline);
       px(headX + 16, headY + 10, 8, 2, outline);
-
       px(headX + 8, headY + 13, 4, 5, outline);
       px(headX + 19, headY + 13, 4, 5, outline);
-
       px(headX + 9, headY + 24, 13, 3, outline);
       px(headX + 11, headY + 23, 9, 1, outline);
     }
@@ -337,10 +324,8 @@ export const CharacterSpriteRendererV2 = {
       px(headX + 21, headY + 9, 5, 2, scar);
     }
 
-    // Nose.
     px(headX + 13, headY + 16, 3, 6, "rgba(0,0,0,0.35)");
 
-    // Beard.
     if (beard === "stubble") {
       px(headX + 6, headY + 21, 18, 5, "rgba(0,0,0,0.35)");
     }
@@ -356,7 +341,6 @@ export const CharacterSpriteRendererV2 = {
       px(headX + 10, headY + 27, 10, 5, hair);
     }
 
-    // Glasses.
     if (glasses === "round") {
       px(headX + 4, headY + 11, 8, 7, outline);
       px(headX + 16, headY + 11, 8, 7, outline);
@@ -380,76 +364,72 @@ export const CharacterSpriteRendererV2 = {
     }
   },
 
-async draw(canvas, character, options = {}) {
-  if (!canvas || !character) return;
+  async draw(canvas, character, options = {}) {
+    if (!canvas || !character) return;
 
-  const ctx = canvas.getContext("2d");
-  const animation = options.animation || "idle";
+    const ctx = canvas.getContext("2d");
+    const animation = options.animation || "idle";
 
-  // TEMP FIX:
-  // Force every animation to frame 0 so the baked body frame cannot bob
-  // underneath the custom head.
-  const rawFrame = options.frame || 0;
-const shouldFreezePlayer = character?.spriteType !== "coach";
-const frame = shouldFreezePlayer ? 0 : rawFrame;
+    const rawFrame = options.frame || 0;
+    const frame = animation === "walk" ? rawFrame : 0;
 
-  const frameWidth = options.frameWidth || this.frameWidth;
-  const frameHeight = options.frameHeight || this.frameHeight;
+    const frameWidth = options.frameWidth || this.frameWidth;
+    const frameHeight = options.frameHeight || this.frameHeight;
 
-  ctx.imageSmoothingEnabled = false;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const image = await loadSpriteImage(this.getAnimationPath(character, animation));
+    const image = await loadSpriteImage(this.getAnimationPath(character, animation));
 
-  if (!image) {
-    this.drawMissing(canvas);
-    return;
-  }
+    if (!image) {
+      this.drawMissing(canvas);
+      return;
+    }
 
-  const totalFrames = Math.floor(image.width / frameWidth);
-  const safeFrame = Math.max(0, Math.min(totalFrames - 1, frame));
+    const totalFrames = Math.floor(image.width / frameWidth);
+    const safeFrame = Math.max(0, Math.min(totalFrames - 1, frame));
 
-  const sourceCanvas = document.createElement("canvas");
-  sourceCanvas.width = frameWidth;
-  sourceCanvas.height = frameHeight;
+    const sourceCanvas = document.createElement("canvas");
+    sourceCanvas.width = frameWidth;
+    sourceCanvas.height = frameHeight;
 
-  const sourceCtx = sourceCanvas.getContext("2d");
-  sourceCtx.imageSmoothingEnabled = false;
+    const sourceCtx = sourceCanvas.getContext("2d");
+    sourceCtx.imageSmoothingEnabled = false;
 
-  sourceCtx.drawImage(
-    image,
-    safeFrame * frameWidth,
-    0,
-    frameWidth,
-    frameHeight,
-    0,
-    0,
-    frameWidth,
-    frameHeight
-  );
+    sourceCtx.drawImage(
+      image,
+      safeFrame * frameWidth,
+      0,
+      frameWidth,
+      frameHeight,
+      0,
+      0,
+      frameWidth,
+      frameHeight
+    );
 
-  this.recolourSprite(sourceCanvas, character);
-  this.drawCustomHead(sourceCanvas, character, safeFrame);
+    this.recolourSprite(sourceCanvas, character);
+    this.drawCustomHead(sourceCanvas, character, safeFrame);
 
-  const { widthScale, heightScale } = this.getBodyScale(character);
+    const { widthScale, heightScale } = this.getBodyScale(character);
 
-  const drawWidth = canvas.width * widthScale;
-  const drawHeight = canvas.height * heightScale;
-  const drawX = (canvas.width - drawWidth) / 2;
-  const drawY = canvas.height - drawHeight;
+    const drawWidth = canvas.width * widthScale;
+    const drawHeight = canvas.height * heightScale;
+    const drawX = (canvas.width - drawWidth) / 2;
+    const drawY = canvas.height - drawHeight;
 
-  ctx.drawImage(
-    sourceCanvas,
-    0,
-    0,
-    frameWidth,
-    frameHeight,
-    drawX,
-    drawY,
-    drawWidth,
-    drawHeight
-  );
-},
+    ctx.drawImage(
+      sourceCanvas,
+      0,
+      0,
+      frameWidth,
+      frameHeight,
+      drawX,
+      drawY,
+      drawWidth,
+      drawHeight
+    );
+  },
 
   async toDataUrl(character, options = {}) {
     const canvas = document.createElement("canvas");

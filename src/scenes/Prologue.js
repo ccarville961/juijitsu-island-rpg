@@ -379,7 +379,7 @@ export class Prologue {
     setTimeout(() => {
       this.game.state.progress.prologueComplete = true;
       this.stopAnimations();
-      this.game.scenes.goTo("islandMap");
+      this.game.scenes.goTo("hospital");
     }, 1400);
   }
 
